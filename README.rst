@@ -53,6 +53,22 @@ Same conversion passing an explicit format and filter options:
 
     os._exit(0)
 
+Conversion specifying LibreOffice profile:
+
+.. code:: python
+
+    from pylokit import Office
+    import os
+
+    lo_path = "/path/to/libreoffice/program/dir"
+    profile_url = "file:///path/to/libreoffice/profile/dir"
+
+    with Office(lo_path=lo_path, profile_url=profile_url) as lo:
+        with lo.documentLoad("myfile.rtf") as doc:
+            doc.saveAs("myfile.doc")
+
+    os._exit(0)
+
 The usage of a context manager is needed to properly handle LibreOfficeKit
 file locking.
 The use of _exit() instead of default exit() is required because in some

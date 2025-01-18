@@ -6,9 +6,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from cffi import FFI
-import six
 import os
+
+import six
+from cffi import FFI
 
 
 TARGET_LIB = ("libsofficeapp.so", "libmergedlo.so")
@@ -30,7 +31,8 @@ struct _LibreOfficeKitClass
   size_t  nSize;
 
   void                    (*destroy)       (LibreOfficeKit *pThis);
-  LibreOfficeKitDocument* (*documentLoad)  (LibreOfficeKit *pThis, const char *pURL);
+  LibreOfficeKitDocument* (*documentLoad)  (LibreOfficeKit *pThis,
+                                            const char *pURL);
   char*                   (*getError)      (LibreOfficeKit *pThis);
 };
 
@@ -49,7 +51,11 @@ struct _LibreOfficeKitDocumentClass
                      const char *pFormat,
                      const char *pFilterOptions);
 };
+
 LibreOfficeKit *libreofficekit_hook(const char* install_path);
+
+LibreOfficeKit *libreofficekit_hook_2(const char* install_path,
+                                      const char* profile_path);
 """
 
 
@@ -73,7 +79,7 @@ class Document(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, exc_type, exc_value, tb):
         self.doc.pClass.destroy(self.doc)
 
     def saveAs(self, url, fmt=None, options=None):
@@ -93,7 +99,7 @@ class Document(object):
 
 
 class Office(object):
-    def __init__(self, lo_path):
+    def __init__(self, lo_path, profile_url=None):
         ffi = FFI()
         ffi.cdef(LOKIT_CDEFS)
         lo = None
@@ -107,7 +113,12 @@ class Office(object):
             raise LoKitInitializeError("Failed to initialize LibreOfficeKit")
 
         self.ffi = ffi
-        self.lokit = lo.libreofficekit_hook(six.b(lo_path))
+        self.lo = lo
+        if profile_url:
+            self.lokit = lo.libreofficekit_hook_2(six.b(lo_path),
+                                                  six.b(profile_url))
+        else:
+            self.lokit = lo.libreofficekit_hook(six.b(lo_path))
 
     def documentLoad(self, url):
         doc = self.lokit.pClass.documentLoad(self.lokit, six.b(url))
@@ -121,6 +132,13 @@ class Office(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, tb):
+    def destroy(self):
         if hasattr(self, "lokit"):
             self.lokit.pClass.destroy(self.lokit)
+
+    def dlclose(self):
+        if hasattr(self, "lo") and hasattr(self, "ffi"):
+            self.ffi.dlclose(self.lo)
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.destroy()

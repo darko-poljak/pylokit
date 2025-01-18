@@ -1,17 +1,20 @@
-from lokit import Office
 import argparse
 import os
+
+from lokit import Office
 
 LO_PATH = "/opt/libreoffice4.3/program"
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='lokitconv.py',
-            description='Requires LibreOffice 4.3.0')
-    parser.add_argument('-f', '--format',
-            help='Known formats include:\
-                For text documents: doc docx fodt html odt ott pdf txt xhtml')
-    parser.add_argument('-o', '--options',
-            help='Filter options, known options include: SkipImages')
+                                     description='Requires LibreOffice 4.3.0')
+    parser.add_argument(
+        '-f', '--format',
+        help=('Known formats include:\nFor text documents:'
+              ' doc docx fodt html odt ott pdf txt xhtml'))
+    parser.add_argument(
+        '-o', '--options',
+        help='Filter options, known options include: SkipImages')
     parser.add_argument('input_file')
     parser.add_argument('output_file')
 

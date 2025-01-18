@@ -1,1 +1,6 @@
-from .lokit import Office, LoKitInitializeError, LoKitImportError, LoKitExportError
+from .lokit import (
+    Office,
+    LoKitInitializeError,
+    LoKitImportError,
+    LoKitExportError
+)
